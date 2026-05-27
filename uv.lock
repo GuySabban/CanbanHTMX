@@ -48,6 +48,7 @@ dependencies = [
     { name = "jwt" },
     { name = "pyjwt" },
     { name = "python-jose" },
+    { name = "python-multipart" },
 ]
 
 [package.metadata]
@@ -57,6 +58,7 @@ requires-dist = [
     { name = "jwt", specifier = ">=1.4.0" },
     { name = "pyjwt", specifier = ">=2.13.0" },
     { name = "python-jose", specifier = ">=3.5.0" },
+    { name = "python-multipart", specifier = ">=0.0.29" },
 ]
 
 [[package]]

@@ -48,9 +48,9 @@ class DB:
         
         with self.__get_connection() as con:
             cursor = con.cursor()
-            cursor.execute(query, username)
+            cursor.execute(query, (username,))
         
-            stored_user = query.fetchone()
+            stored_user = cursor.fetchone()
             
         return stored_user != None
 
@@ -59,9 +59,9 @@ class DB:
         
         with self.__get_connection() as con:
             cursor = con.cursor()
-            cursor.execute(query, username)
+            cursor.execute(query, (username,))
         
-            stored_user = query.fetchone()
+            stored_user = cursor.fetchone()
         
         if stored_user is None: # No user found
             return 401, "Invalid username or password"
@@ -84,9 +84,9 @@ class DB:
         
         with self.__get_connection() as con:
             cursor = con.cursor()
-            cursor.execute(query, username)
+            cursor.execute(query, (username,))
         
-            stored_user = query.fetchone()
+            stored_user = cursor.fetchone()
             
         hash, salt = self.__hash_password(password)
         
@@ -97,8 +97,15 @@ class DB:
         
         with self.__get_connection() as con:
             cursor = con.cursor()
-            cursor.execute(query, [username, hash, salt])
+            cursor.execute(query, (username, hash, salt))
             con.commit()
             
         token = self.__create_access_token(username)
         return 200, token      
+    
+    def is_token_valid(token: str):
+        try:
+            payload = jwt.decode(token, secret, algorithms=["HS256"])
+            return True
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return False

@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, status
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Depends, HTTPException, Request, status, Form
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
@@ -10,6 +10,8 @@ from lib.db import DB
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 db = DB()
+
+app.mount("/public", StaticFiles(directory="public"), name="public")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -40,3 +42,23 @@ def login_or_register(form_data: OAuth2PasswordRequestForm = Depends()):
             )
             
         return {"token": data}
+@app.get("/api/user-status")
+def get_user_status(request: Request):
+    auth = request.headers.get("Authorization")
+    
+    if auth and auth.startswith('Bearer '):
+        token = auth.split(" ")[1]
+        
+        if db.is_token_valid(token):
+            return templates.TemplateResponse(request=request, name="homepage.html")
+        
+    return templates.TemplateResponse(request=request, name="login.html")
+        
+@app.post("/api/check_username", response_class=PlainTextResponse)
+def check_username(username: str = Form(...)):
+    user_exists = db.does_username_exist(username)
+    
+    if user_exists:
+        return "Sign In"
+    
+    return "Sign Up" 

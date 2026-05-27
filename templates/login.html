@@ -1,0 +1,109 @@
+<div
+  class="flex justify-center items-center w-screen h-screen absolute top-0 left-0"
+>
+  <div class="w-2/5 h-3/5 rounded-3xl z-10 bg-white">
+    <form
+      class="flex flex-col justify-center items-center h-full w-full"
+      hx-post="/api/login_or_register"
+      hx-target=".login-card"
+      hx-on:htmx:after-request="
+if (event.detail.xhr.status == 200) {
+    const res = JSON.parse(event.detail.xhr.responseText)
+    localStorage.setItem('auth-token', res.token)
+} else if (event.detail.xhr.status == 401) {
+    const err = document.getElementById('error-alert')
+    err.classList.add('flex')
+    err.classList.remove('hidden')
+}
+"
+      hx-on:input="
+const form = this;
+const btn = document.getElementById('submit-btn');
+
+if (form.checkValidity()) {
+    btn.classList.remove('bg-gray-300', 'pointer-events-none');
+    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+} else {
+    console.log('problem')
+    btn.classList.add('bg-gray-300', 'pointer-events-none');
+    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+}
+"
+    >
+      <span class="text-3xl mb-16">Sign In or Create an Account</span>
+      <div
+        id="error-alert"
+        class="hidden items-center gap-3 w-11/12 p-3 mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl transition-all duration-300"
+      >
+        <iconify-icon
+          icon="zondicons:exclamation-outline"
+          class="text-xl shrink-0 text-red-500"
+          noobserver
+        ></iconify-icon>
+        <span class="text-sm font-medium">Invalid username or password</span>
+      </div>
+      <div class="flex flex-col w-11/12 mb-5">
+        <label for="username" class="text-gray-400 text-sm"
+          >Your username</label
+        >
+        <input
+          type="text"
+          id="username"
+          name="username"
+          hx-post="/api/check_username"
+          hx-trigger="keyup delay:400ms changed, change"
+          hx-target="#submit-btn"
+          hx-swap="innerHTML"
+          class="border-2 border-gray rounded-lg h-10 mt-1 p-2"
+          required
+        />
+      </div>
+      <div class="flex flex-col w-11/12 mb-16">
+        <div class="text-gray-400 text-sm flex justify-between">
+          <label for="password">Your password</label>
+          <button
+            class="flex gap-1 items-center justify-center mr-1"
+            type="button"
+            hx-on:click="
+const input = document.getElementById('password');
+const label = this.querySelector('span');
+const icon = this.querySelector('iconify-icon');
+
+if (input.type === 'password') {
+    input.type = 'text';
+    label.textContent = 'Hide';
+    icon.setAttribute('icon', 'mdi:eye-off-outline');
+} else {
+    input.type = 'password';
+    label.textContent = 'Show';
+    icon.setAttribute('icon', 'mdi:eye-outline');
+}
+            "
+          >
+            <span>Show</span>
+            <iconify-icon icon="mdi:eye-outline" noobserver></iconify-icon>
+          </button>
+        </div>
+
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="border-2 border-gray rounded-lg h-10 mt-1 p-2"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        id="submit-btn"
+        class="bg-gray-300 rounded-3xl w-11/12 h-10 text-white pointer-events-none"
+      >
+        Log In or Sign Up
+      </button>
+    </form>
+  </div>
+  <img
+    src="/public/loginbg.png"
+    class="w-screen h-screen absolute top-0 left-0 z-0"
+  />
+</div>
