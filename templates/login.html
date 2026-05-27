@@ -7,6 +7,7 @@
       hx-post="/api/login_or_register"
       hx-target=".login-card"
       hx-on:htmx:after-request="
+if (!event.detail.xhr.responseURL.endsWith('login_or_register')) return;
 if (event.detail.xhr.status == 200) {
     const res = JSON.parse(event.detail.xhr.responseText)
     localStorage.setItem('auth-token', res.token)
@@ -24,7 +25,7 @@ if (form.checkValidity()) {
     btn.classList.remove('bg-gray-300', 'pointer-events-none');
     btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
 } else {
-    console.log('problem')
+    event.preventDefault();
     btn.classList.add('bg-gray-300', 'pointer-events-none');
     btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
 }
@@ -54,6 +55,17 @@ if (form.checkValidity()) {
           hx-trigger="keyup delay:400ms changed, change"
           hx-target="#submit-btn"
           hx-swap="innerHTML"
+          hx-on:htmx:after-request="
+const reqContainer = document.getElementById('req-container')
+
+if (event.detail.xhr.responseText == 'Sign Up') {
+    reqContainer.classList.add('h-5')
+    reqContainer.classList.remove('h-0')
+} else {
+    reqContainer.classList.remove('h-5')
+    reqContainer.classList.add('h-0')
+}
+"
           class="border-2 border-gray rounded-lg h-10 mt-1 p-2"
           required
         />
@@ -61,6 +73,28 @@ if (form.checkValidity()) {
       <div class="flex flex-col w-11/12 mb-16">
         <div class="text-gray-400 text-sm flex justify-between">
           <label for="password">Your password</label>
+          <div
+            class="flex h-0 overflow-hidden items-center justify-center transition-[height]"
+            id="req-container"
+          >
+            <span class="text-gray-400 text-sm" id="8-chars-req"
+              >8 Characters</span
+            >
+            <iconify-icon
+              inline
+              icon="mdi:dot"
+              class="text-gray-400"
+              noobserver
+            ></iconify-icon>
+            <span class="text-gray-400 text-sm" id="upper-req">Uppercase</span>
+            <iconify-icon
+              inline
+              icon="mdi:dot"
+              class="text-gray-400"
+              noobserver
+            ></iconify-icon>
+            <span class="text-gray-400 text-sm" id="lower-req">Lowercase</span>
+          </div>
           <button
             class="flex gap-1 items-center justify-center mr-1"
             type="button"
@@ -90,13 +124,35 @@ if (input.type === 'password') {
           id="password"
           name="password"
           class="border-2 border-gray rounded-lg h-10 mt-1 p-2"
+          hx-on:input="
+const eightReq = document.getElementById('8-chars-req');
+const upperReq = document.getElementById('upper-req');
+const lowerReq = document.getElementById('lower-req');
+const value = this.value.trim();
+
+const hasLength = value.length >= 8;
+const hasUpper = /[A-Z]/.test(value);
+const hasLower = /[a-z]/.test(value);
+
+eightReq.classList.toggle('text-green-400', hasLength);
+upperReq.classList.toggle('text-green-400', hasUpper);
+lowerReq.classList.toggle('text-green-400', hasLower);
+
+if (hasLength && hasUpper && hasLower) {
+    this.setCustomValidity('');
+  } else {
+    this.setCustomValidity(
+      'Password must contain 8 characters, uppercase, and lowercase letters.'
+    );
+  }
+          "
           required
         />
       </div>
       <button
         type="submit"
         id="submit-btn"
-        class="bg-gray-300 rounded-3xl w-11/12 h-10 text-white pointer-events-none"
+        class="bg-gray-300 rounded-3xl w-11/12 h-10 animate- text-white pointer-events-none"
       >
         Log In or Sign Up
       </button>

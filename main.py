@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import FastAPI, Depends, HTTPException, Request, status, Form
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -55,7 +57,9 @@ def get_user_status(request: Request):
     return templates.TemplateResponse(request=request, name="login.html")
         
 @app.post("/api/check_username", response_class=PlainTextResponse)
-def check_username(username: str = Form(...)):
+def check_username(username: str = Form("")):
+    if not username or username.strip() == "":
+        return "Sign In or Sign Up"
     user_exists = db.does_username_exist(username)
     
     if user_exists:
