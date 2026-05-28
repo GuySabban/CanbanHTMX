@@ -1,16 +1,24 @@
 <div
-  class="flex justify-center items-center w-screen h-screen absolute top-0 left-0"
+  class="flex justify-center items-center w-screen h-screen absolute top-0 left-0 login-card"
+  hx-get="/api/user-status"
+  hx-trigger="login-success from:body"
+  hx-target="this"
+  hx-swap="outerHTML"
+  hx-headers="js:{Authorization: getAuth()}"
 >
   <div class="w-2/5 h-3/5 rounded-3xl z-10 bg-white">
     <form
       class="flex flex-col justify-center items-center h-full w-full"
       hx-post="/api/login_or_register"
-      hx-target=".login-card"
+      hx-swap="none"
       hx-on:htmx:after-request="
 if (!event.detail.xhr.responseURL.endsWith('login_or_register')) return;
 if (event.detail.xhr.status == 200) {
     const res = JSON.parse(event.detail.xhr.responseText)
-    localStorage.setItem('auth-token', res.token)
+    localStorage.setItem('auth_token', res.token)
+    setTimeout(() => {
+        htmx.trigger('.login-card', 'login-success')
+    }, 100)
 } else if (event.detail.xhr.status == 401) {
     const err = document.getElementById('error-alert')
     err.classList.add('flex')

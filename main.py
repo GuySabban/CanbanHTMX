@@ -46,15 +46,31 @@ def login_or_register(form_data: OAuth2PasswordRequestForm = Depends()):
         return {"token": data}
 @app.get("/api/user-status")
 def get_user_status(request: Request):
-    auth = request.headers.get("Authorization")
-    
-    if auth and auth.startswith('Bearer '):
-        token = auth.split(" ")[1]
-        
-        if db.is_token_valid(token):
-            return templates.TemplateResponse(request=request, name="homepage.html")
+    token = _get_auth_token(request)
+
+    if token:
+        return templates.TemplateResponse(request=request, name="homepage.html")
         
     return templates.TemplateResponse(request=request, name="login.html")
+    
+@app.get("/api/my-boards")
+def get_user_status(request: Request):
+    token = _get_auth_token(request)
+
+    if token:
+        return templates.TemplateResponse(request=request, name="components/my-boards.html")
+        
+    return "Error"
+    
+@app.get("/api/get-username", response_class=PlainTextResponse)
+def get_username(request: Request):
+    token = _get_auth_token(request)
+    
+    if token:
+        user = db.get_user_info(token)
+        
+        return user["username"]
+    return "Unknown"
         
 @app.post("/api/check_username", response_class=PlainTextResponse)
 def check_username(username: str = Form("")):
@@ -66,3 +82,14 @@ def check_username(username: str = Form("")):
         return "Sign In"
     
     return "Sign Up" 
+
+def _get_auth_token(request: Request):
+    auth = request.headers.get("Authorization")
+
+    if auth and auth.startswith('Bearer '):
+        token = auth.split(" ")[1]
+    
+        if db.is_token_valid(token):
+            return token
+    
+    return None

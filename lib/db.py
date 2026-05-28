@@ -1,11 +1,15 @@
 import os
 import hashlib
 import sqlite3
+from typing import TypedDict
 from jose import jwt, JWTError
 from datetime import timezone, timedelta, datetime
 
 secret = "SECRET"
 
+class User(TypedDict):
+    id: int
+    username: str
 class DB:
     def __init__(self):
         self.__db_path = "data.db"
@@ -17,6 +21,7 @@ class DB:
         
         return conn
 
+    @staticmethod
     def __hash_password(password: str):
         salt = os.urandom(16)
         hash = hashlib.pbkdf2_hmac(
@@ -27,6 +32,7 @@ class DB:
         )
         return hash, salt
 
+    @staticmethod
     def __is_password_correct(password: str, db_hash: bytes, db_salt: bytes):
         new_hash = hashlib.pbkdf2_hmac(
             "sha256",
@@ -36,12 +42,28 @@ class DB:
         )
         return new_hash == db_hash
     
+    @staticmethod
     def __create_access_token(username: str):
         to_encode = {
             "sub": username,
         }
         
         return jwt.encode(to_encode, secret, algorithm="HS256")
+    
+    @staticmethod
+    def is_token_valid(token: str):
+        try:
+            payload = jwt.decode(token, secret, algorithms=["HS256"])
+            return True
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return False
+        
+    @staticmethod
+    def get_token_data(token: str):
+        try:
+            return jwt.decode(token, secret, algorithms=["HS256"])
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return None
 
     def does_username_exist(self, username: str):
         query = "SELECT * FROM User WHERE username = ?"
@@ -55,7 +77,7 @@ class DB:
         return stored_user != None
 
     def login(self, username: str, password: str):
-        query = "SELECT * FROM User WHERE username = ?'"
+        query = "SELECT * FROM User WHERE username = ?"
         
         with self.__get_connection() as con:
             cursor = con.cursor()
@@ -80,14 +102,14 @@ class DB:
         return 200, token
     
     def register(self, username: str, password: str):
-        query = "SELECT * FROM User WHERE username = ?'"
+        query = "SELECT * FROM User WHERE username = ?"
         
         with self.__get_connection() as con:
             cursor = con.cursor()
             cursor.execute(query, (username,))
         
             stored_user = cursor.fetchone()
-            
+
         hash, salt = self.__hash_password(password)
         
         if stored_user != None:
@@ -103,9 +125,20 @@ class DB:
         token = self.__create_access_token(username)
         return 200, token      
     
-    def is_token_valid(token: str):
-        try:
-            payload = jwt.decode(token, secret, algorithms=["HS256"])
-            return True
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            return False
+    def get_user_info(self, token: str) -> User:
+        data = self.get_token_data(token)
+        if data is not None:
+            query = "SELECT * FROM User WHERE username = ?"
+            username = data["sub"]
+            
+            with self.__get_connection() as con:
+                cursor = con.cursor()
+                cursor.execute(query, (username,))
+            
+                stored_user = cursor.fetchone()
+
+            stored_user = dict(stored_user)
+            del stored_user["passwordHash"]
+            del stored_user["passwordSalt"]
+            
+            return stored_user

@@ -3,25 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FastAPI + HTMX</title>
+    <title>HTMX Kanban</title>
     <script
       src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
       integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>t
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
     <script>
-      document.addEventListener("htmx:configRequest", (event) => {
-        const token = localStorage.getItem("auth_token");
+      function getAuth() {
+        const token = localStorage.getItem("auth_token")
         if (token) {
-          event.detail.headers["Authorization"] = `Bearer ${token}`;
+          return `Bearer ${token}`;
         }
+        return undefined;
+      }
+      document.addEventListener("htmx:configRequest", (event) => {
+        
       });
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
-    <div id="user-status" hx-get="/api/user-status" hx-trigger="load">
+    <div id="user-status" hx-get="/api/user-status" hx-headers="js:{Authorization: getAuth()}" hx-trigger="load">
       Loading...
     </div>
   </body>

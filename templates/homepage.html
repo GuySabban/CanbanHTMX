@@ -1,1 +1,44 @@
-hi so yeah ur logged in yay
+<div
+  class="flex justify-start items-center w-screen h-screen absolute bg-gray-100 top-0 left-0 login-card"
+>
+  <div
+    class="flex flex-col justify-between items-center w-2/12 bg-transparent h-screen"
+  >
+    <!-- sidebar -->
+    <div class="flex justify-center items-center w-full h-[7%] border-b-2 border-gray-300">
+      <!-- profile icon place -->
+      <iconify-icon
+        icon="lucide:user-round"
+        class="text-[2.2rem] shrink-0 ml-5 text-black mr-5 border-2 border-gray-300 rounded-full"
+        noobserver
+      ></iconify-icon>
+      <span
+        >Hello,
+        <span
+          hx-get="/api/get-username"
+          hx-headers="js:{Authorization: getAuth()}"
+          hx-trigger="load"
+        ></span
+        >!
+      </span>
+      <button
+        class="ml-auto mr-5 w-auto h-auto rounded-md flex items-center justify-center hover:bg-gray-300 group p-[0.5rem] transition-all hover:transition-all active:bg-gray-400"
+      >
+        <iconify-icon
+          icon="akar-icons:gear"
+          class="text-xl shrink-0 text-black group-hover:-translate-y-[0.1rem] transition-all group-hover:transition-all"
+          noobserver
+        ></iconify-icon>
+      </button>
+    </div>
+    <div class="flex flex-col h-[93%] w-full">
+        <div hx-get="/api/my-boards" hx-swap="this" hx-trigger="load">Loading...</div>
+        <div hx-get="/api/shared-boards" hx-swap="this" hx-trigger="load">Loading...</div>
+    </div>
+  </div>
+  <div
+    class="flex w-[82.333%] h-[97%] border border-gray-300 bg-white rounded-3xl"
+  >
+    
+  </div>
+</div>
